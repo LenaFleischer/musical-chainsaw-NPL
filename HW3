@@ -1,6 +1,7 @@
 import math
 
 def spymaster(inputDict):
+    # split the inputted dictionary into the appropriate dictionaries, base vector being 0,0,0
     our_words = {}
     their_words = {}
     neutral_words = {}
@@ -13,12 +14,15 @@ def spymaster(inputDict):
         neutral_words[word] = [0,0,0]
     assassin_word[inputDict['assassin word']] = [0,0,0]
     
+    # call the setVectors method to make vectors actually be correct
     our_words = setVectors(our_words)
     their_words = setVectors(their_words)
     neutral_words = setVectors(neutral_words)
     assassin_word = setVectors(assassin_word)
     
+    # find the ideal vector, and how many words it corrolates to without thinking about the other words [yet]
     ideal, number = findIdealVector(our_words)
+    
     return
 
 # finds and sets the vectors for a specific word
@@ -30,6 +34,7 @@ def setVectors(dictOfWords):
         return
     return dictOfWords
 
+# finds the closest words in the dictionary, returns the average of them and the number of words the average corrolates to [hard coded to 2]
 # TODO: make this word for 3/4/1/etc number of words and make it not suck
 def findIdealVector(dictOfWords):
     HARD_CODED_NUMBER = 2
@@ -45,6 +50,7 @@ def findIdealVector(dictOfWords):
     ideal = [(dictOfWords[w1][0]+dictOfWords[w2][0])/2, (dictOfWords[w1][1]+dictOfWords[w2][1])/2, (dictOfWords[w1][2]+dictOfWords[w2][2])/2]
     return ideal, HARD_CODED_NUMBER
 
+# calculates and returns the euclidean distance between 2 vectors
 def distance(v1,v2):
     return math.sqrt((v1[0]-v2[0])**2+(v1[1]-v2[1])**2+(v1[2]-v2[2])**2)
 
