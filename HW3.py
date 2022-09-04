@@ -1,4 +1,5 @@
 import math
+import numpy as np
 
 def spymaster(inputDict):
     # split the inputted dictionary into the appropriate dictionaries, base vector being 0,0,0
@@ -42,6 +43,7 @@ def findIdealVector(dictOfWords):
     min_dist = 100
     w1 = ""
     w2 = ""
+
     for word1 in dictOfWords.keys():
         for word2 in dictOfWords.keys():
             if word1!=word2 and distance(dictOfWord[word1],dictOfWord[word2])<min_dist:
@@ -59,13 +61,13 @@ def distance(v1,v2):
 # TODO: functionality
 def checkVector(their_words, neutral_words, assassin_word, idealVector):
     closeness_allowed_their = 0 #TODO: no
-    closeness_allowed_nuetral = 0 #TODO: no
+    closeness_allowed_neutral = 0 #TODO: no
     closeness_allowed_assassin = 0 #TODO: no
     for word in their_words.keys():
         if distance(idealVector, their_words[word])<closeness_allowed_their:
             return "fuck"
     for word in neutral_words.keys():
-        if distance(idealVector, neutral_words[word])<closeness_allowed_nuetral:
+        if distance(idealVector, neutral_words[word])<closeness_allowed_neutral:
             return "fuck"
     for word in assassin_word.keys():
             if distance(idealVector, assassin_word[word])<closeness_allowed_assassin:
