@@ -1,6 +1,9 @@
 import math
 import numpy as np
 
+embeddings = {}
+
+
 def spymaster(inputDict):
     # split the inputted dictionary into the appropriate dictionaries, base vector being 0,0,0
     our_words = {}
@@ -27,14 +30,32 @@ def spymaster(inputDict):
     
     return
 
+
+# takes in filename, gets a dictionary of all embeddings in the file
+def load_embeddings(filename):
+    f = open(filename)
+    line = f.readline()
+    size = (int(line.split()[0]))
+    # embeddings = {}
+    # global embeddings
+    for i in range(size):
+        line = f.readline().split()
+        word = line[0].split('_')[0].lower()
+        # if ':' in word or line[0].split('_')[1] == 'PROPN': # takes out proper nouns
+        if ':' in word:
+            continue
+        embeddings[word] = [float(x) for x in line[1:]]
+    return embeddings
+
 # finds and sets the vectors for a specific word
-# TODO: functionality
+# input: codenames words
 def setVectors(dictOfWords):
     for word in dictOfWords.keys():
+        word_vector = embeddings.get(word)
         #parse through data and find the vector for the word
-        #dictOfWords[word] = found vector
-        return
+        dictOfWords[word] = word_vector
     return dictOfWords
+
 
 # finds the closest words in the dictionary, returns the average of them and the number of words the average corrolates to [hard coded to 2]
 # TODO: make this word for 3/4/1/etc number of words and make it not suck
