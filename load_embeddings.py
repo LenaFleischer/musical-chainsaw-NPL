@@ -6,7 +6,7 @@ def load_embeddings(filename):
     for i in range(size):
         line = f.readline().split()
         word = line[0].split('_')[0].lower()
-        if ':' in word:
+        if ':' in word or line[0].split('_')[1] == 'PROPN':
             continue
         embeddings[word] = [float(x) for x in line[1:]]
     return embeddings
