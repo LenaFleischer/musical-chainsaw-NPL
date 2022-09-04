@@ -1,16 +1,35 @@
 import math
 import numpy as np
+import time as tm
 
-embeddings = {}
+# takes in filename, gets a dictionary of all embeddings in the file
+def load_embeddings(filename):
+    f = open(filename)
+    line = f.readline()
+    size = (int(line.split()[0]))
+    embeddings = {}
+    # global embeddings
+    for i in range(size):
+        line = f.readline().split()
+        word = line[0].split('_')[0].lower()
+        # if ':' in word or line[0].split('_')[1] == 'PROPN': # takes out proper nouns
+        if ':' in word or '</s>' in word:
+            continue
+        embeddings[word] = [float(x) for x in line[1:]]
+    return embeddings
 
+start_time=tm.time()
+embeddings = load_embeddings("model.txt")
+t = tm.time()-start_time
+print("Took", int(t/60), "minutes and", "{:.2f}".format(t - 60*int(t/60)), "seconds to load embeddings")
 
 def spymaster(inputDict):
-    # split the inputted dictionary into the appropriate dictionaries, base vector being 0,0,0
+    # split the inputted dictionary into the appropriate dictionaries, base vector being 0,0,0,0,...
     our_words = {}
     their_words = {}
     neutral_words = {}
     assassin_word = {}
-    base_value = np.full(300,0)
+    base_value = np.full(300,0.0)
     for word in inputDict['our words']:
         our_words[word] = base_value
     for word in inputDict['their words']:
@@ -27,25 +46,8 @@ def spymaster(inputDict):
     
     # find the ideal vector, and how many words it corrolates to without thinking about the other words [yet]
     ideal, number = findIdealVector(our_words)
-    
+    print(ideal)
     return
-
-
-# takes in filename, gets a dictionary of all embeddings in the file
-def load_embeddings(filename):
-    f = open(filename)
-    line = f.readline()
-    size = (int(line.split()[0]))
-    # embeddings = {}
-    # global embeddings
-    for i in range(size):
-        line = f.readline().split()
-        word = line[0].split('_')[0].lower()
-        # if ':' in word or line[0].split('_')[1] == 'PROPN': # takes out proper nouns
-        if ':' in word:
-            continue
-        embeddings[word] = [float(x) for x in line[1:]]
-    return embeddings
 
 # finds and sets the vectors for a specific word
 # input: codenames words
@@ -64,14 +66,15 @@ def findIdealVector(dictOfWords):
     min_dist = 100
     w1 = ""
     w2 = ""
-
     for word1 in dictOfWords.keys():
         for word2 in dictOfWords.keys():
-            if word1!=word2 and distance(dictOfWord[word1],dictOfWord[word2])<min_dist:
-                min_dist = distance(dictOfWord[word1],dictOfWord[word2])
+            if word1!=word2 and distance(dictOfWords[word1],dictOfWords[word2])<min_dist:
+                min_dist = distance(dictOfWords[word1],dictOfWords[word2])
                 w1 = word1
                 w2 = word2
-    ideal = [(dictOfWords[w1][0]+dictOfWords[w2][0])/2, (dictOfWords[w1][1]+dictOfWords[w2][1])/2, (dictOfWords[w1][2]+dictOfWords[w2][2])/2]
+    ideal = np.full(300,0.0)
+    for value in range(len(ideal)):
+        ideal[value] = (dictOfWords[w1][value]+dictOfWords[w2][value])/2
     return ideal, HARD_CODED_NUMBER
 
 # calculates and returns the euclidean distance between 2 vectors
