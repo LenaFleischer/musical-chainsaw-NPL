@@ -1,0 +1,9 @@
+#ignore google news 2013 file
+/google_news_2013/*
+/google_news_2013.zip
+
+# example: ignpre ALL .log files
+#   *.log
+
+# example: ignore ALL files in ANY directory named temp
+# temp/
