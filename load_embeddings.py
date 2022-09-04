@@ -1,3 +1,5 @@
+#key: word, value: list of numbers (each word has about 300 numbers)
+#returns dictionary/list of possible words for the game
 def load_embeddings(filename):
     f = open(filename)
     line = f.readline()
