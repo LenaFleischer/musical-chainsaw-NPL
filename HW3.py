@@ -23,12 +23,6 @@ def load_embeddings(filename):
         if ':' in word or '</s>' in word:
             continue
         embeddings[word] = [float(x) for x in line[1:]]
-    # return embeddings
-
-# start_time=tm.time()
-# embeddings = load_embeddings("model.txt")
-# t = tm.time()-start_time
-# print("Took", int(t/60), "minutes and", "{:.2f}".format(t - 60*int(t/60)), "seconds to load embeddings")
 
 def spymaster(inputDict):
     # split the inputted dictionary into the appropriate dictionaries, base vector being 0,0,0,0,...
@@ -54,7 +48,7 @@ def spymaster(inputDict):
     neutral_words = setVectors(neutral_words)
     assassin_word = setVectors(assassin_word)
     
-    # find the ideal vector, and how many words it corrolates to without thinking about the other words [yet]
+    # find the ideal vector, and how many words it corrolates to
     ideal, words_clued_for = findIdealVector(our_words)
     ideal = improve_vector(ideal, list(their_words.values()), list(assassin_word.values())[0]) #their_vects should only be values, for assassin we specify so we get only the vector, not list  
     print("Clue:", getClue(ideal))
@@ -71,15 +65,12 @@ def setVectors(dictOfWords):
         dictOfWords[word] = word_vector
     return dictOfWords
 
-
-# averages the vectors given to get a ideal vector for the clue
-def calculateIdealVector(vectors):
-    appendedVectors = [vectors[0]]
-    i = 1
-    while i<len(vectors):
-        appendedVectors = np.vstack((appendedVectors,vectors[i]))
-        i+=1
-    return np.mean(appendedVectors.astype(float), axis = 0)
+# calculates and returns the euclidean distance between 2 vectors
+def distance(v1,v2):
+    inner = 0
+    for i in range(len(v1)):
+        inner += (v1[i]-v2[i])**2
+    return math.sqrt(inner)
 
 # finds the average distance between the current words
 def getAveDistances(vectors, n):
@@ -142,7 +133,6 @@ def findIdealVector(dictOfWords):
         # if there are more then 1 word left in the dictionary
         if num_words!=1:
             ave_distances = getAveDistances(vectors, num_words) 
-                
             maxInd = findTrueMax(vectors,ave_distances)
             
             i = 0
@@ -170,29 +160,21 @@ def findIdealVector(dictOfWords):
             # if theres only 1 word left, return it
             return calculateIdealVector(listOfVectors[0][1]), listOfVectors[0][0]
 
-# calculates and returns the euclidean distance between 2 vectors
-def distance(v1,v2):
-    inner = 0
-    for i in range(len(v1)):
-        inner += (v1[i]-v2[i])**2
-    return math.sqrt(inner)
 
-# checks the distance between the chosen ideal vector and all other words
-# TODO: functionality
-def checkVector(their_words, neutral_words, assassin_word, idealVector):
-    closeness_allowed_their = 0 #TODO: no
-    closeness_allowed_neutral = 0 #TODO: no
-    closeness_allowed_assassin = 0 #TODO: no
-    for word in their_words.keys():
-        if distance(idealVector, their_words[word])<closeness_allowed_their:
-            return "fuck"
-    for word in neutral_words.keys():
-        if distance(idealVector, neutral_words[word])<closeness_allowed_neutral:
-            return "fuck"
-    for word in assassin_word.keys():
-            if distance(idealVector, assassin_word[word])<closeness_allowed_assassin:
-                return "fuck"
-    return "yeehaw"
+# averages the vectors given to get a ideal vector for the clue
+def calculateIdealVector(vectors):
+    appendedVectors = [vectors[0]]
+    i = 1
+    while i<len(vectors):
+        appendedVectors = np.vstack((appendedVectors,vectors[i]))
+        i+=1
+    return np.mean(appendedVectors.astype(float), axis = 0)
+
+def improve_vector(ideal, their_vects, assassin_vect):
+    for their_vect in their_vects:
+        ideal = np.subtract(ideal, np.array(their_vect) * (1 / distance(ideal, their_vect)))
+    ideal = np.subtract(ideal, np.array(assassin_vect) * (8 / distance(ideal, assassin_vect)))
+    return ideal
 
 # input: ideal vector, all word embeddings, all input words
 # output: clue word 
@@ -212,16 +194,6 @@ def getClue(ideal_v):
                 loop = True
     return clue
 
-#filename = os.path.join(os.getcwd(), "1", "model.txt")
-filename = "model.txt"
-load_embeddings(filename)
-
-def improve_vector(ideal, their_vects, assassin_vect):
-    for their_vect in their_vects:
-        ideal = np.subtract(ideal, np.array(their_vect) * (1 / distance(ideal, their_vect)))
-    ideal = np.subtract(ideal, np.array(assassin_vect) * (8 / distance(ideal, assassin_vect)))
-    return ideal
-
 #randomly generates input dictionary 
 def generate_inputDict():
     f = open(r"C:\Users\Hset Hset Naing\Documents\Natural Language Processing Block 1\musical-chainsaw-NPL\codenames_default.txt")
@@ -232,27 +204,30 @@ def generate_inputDict():
         line = line.strip('\n')
         codenames.append(line)
         line = f.readline() #go to next line
-    
     our_words = [] #7 words
     their_words = [] #8 words
     neutral_words = [] #9 words
     assassin_word = [] #1 word
-    
     random.shuffle(codenames) #shuffle codenames
-   
     our_words = codenames[:7]
     their_words = codenames[67:75]
     neutral_words = codenames[300:309]
     assassin_word = codenames[399]
-    
     #please don't remove, need for testing just in case
     #print(our_words)
     #print(their_words)
     #print(neutral_words)
     #print(assassin_word)
-
     return { 'our_words':our_words, 'their_words': their_words, 'neutral_words': neutral_words, 'assassin_word': assassin_word } 
 
+#filename = os.path.join(os.getcwd(), "1", "model.txt")
+start_time=tm.time()
+
+filename = "model.txt"
+embeddings = load_embeddings(filename)
 inputDict = {'our words': ['chair', 'fruit', 'candy', 'couch', 'apple', 'france', 'cookie'], 'their words': ['dinosaur', 'mug', 'computer'], \
              'neutral words': ['planet', 'france', 'bird'], 'assassin word': 'cup'}
 spymaster(inputDict)
+
+t = tm.time()-start_time
+print("Took", int(t/60), "minutes and", "{:.2f}".format(t - 60*int(t/60)), "seconds find clue")
