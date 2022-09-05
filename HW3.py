@@ -227,10 +227,10 @@ def generate_inputDict():
     neutral_words = codenames[300:309]
     assassin_word = codenames[399]
     
-
-    print(our_words)
-    print(their_words)
-    print(neutral_words)
-    print(assassin_word)
+    #please don't remove, need for testing just in case
+    #print(our_words)
+    #print(their_words)
+    #print(neutral_words)
+    #print(assassin_word)
 
     return { 'our_words':our_words, 'their_words': their_words, 'neutral_words': neutral_words, 'assassin_word': assassin_word } 
