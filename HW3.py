@@ -14,12 +14,9 @@ def load_embeddings(filename):
     f = open(filename)
     line = f.readline()
     size = (int(line.split()[0]))
-    # embeddings = {}
-    # global embeddings
     for i in range(size):
         line = f.readline().split()
         word = line[0].split('_')[0].lower()
-        # if ':' in word or line[0].split('_')[1] == 'PROPN': # takes out proper nouns
         if ':' in word or '</s>' in word:
             continue
         embeddings[word] = [float(x) for x in line[1:]]
@@ -224,7 +221,7 @@ def generate_inputDict():
 start_time=tm.time()
 
 filename = "model.txt"
-embeddings = load_embeddings(filename)
+load_embeddings(filename)
 inputDict = {'our words': ['chair', 'fruit', 'candy', 'couch', 'apple', 'france', 'cookie'], 'their words': ['dinosaur', 'mug', 'computer'], \
              'neutral words': ['planet', 'france', 'bird'], 'assassin word': 'cup'}
 spymaster(inputDict)
