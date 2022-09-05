@@ -25,6 +25,8 @@ def load_embeddings(filename):
 # t = tm.time()-start_time
 # print("Took", int(t/60), "minutes and", "{:.2f}".format(t - 60*int(t/60)), "seconds to load embeddings")
 
+
+
 def spymaster(inputDict):
     # split the inputted dictionary into the appropriate dictionaries, base vector being 0,0,0,0,...
     our_words = {}
@@ -48,6 +50,7 @@ def spymaster(inputDict):
     
     # find the ideal vector, and how many words it corrolates to without thinking about the other words [yet]
     ideal, number, words_clued_for = findIdealVector(our_words)
+    improve_vector(ideal, their_words.values(), assassin_word.values()[0]) #their_vects should only be values, for assassin we specify so we get only the vector, not list  
     print(ideal)
     print(number)
     print(words_clued_for)
@@ -163,11 +166,6 @@ def checkVector(their_words, neutral_words, assassin_word, idealVector):
                 return "fuck"
     return "yeehaw"
 
-inputDict = {'our words': ['chair', 'fruit', 'banana', 'backpack', 'apple', 'couch', 'bed'], 'their words': ['dinosaur', 'mug', 'computer'], \
-             'neutral words': ['planet', 'france', 'bird'], 'assassin word': 'cup'}
-spymaster(inputDict)
-
-
 # input: ideal vector, all word embeddings, all input words
 # output: clue word 
 # create a dictionary where the key is the word, value is distance from ideal vector
@@ -182,3 +180,8 @@ def improve_vector(ideal, their_vects, assassin_vect):
         ideal = np.subtract(ideal, np.array(their_vect) * (1 / distance(ideal, their_vect)))
     ideal = np.subtract(ideal, np.array(assassin_vect) * (8 / distance(ideal, assassin_vect)))
     return ideal
+
+
+inputDict = {'our words': ['chair', 'fruit', 'banana', 'backpack', 'apple', 'couch', 'bed'], 'their words': ['dinosaur', 'mug', 'computer'], 'neutral words': ['planet', 'france', 'bird'], 'assassin word': 'cup'}
+
+spymaster(inputDict)
