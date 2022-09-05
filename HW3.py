@@ -2,9 +2,11 @@ import math
 import numpy as np
 import time as tm
 import os
+import re
 
 # make global: embeddings, all input words, hardcoded 2 words
 embeddings = {}
+board_words = []
 
 # takes in filename, gets a dictionary of all embeddings in the file
 def load_embeddings(filename):
@@ -27,14 +29,14 @@ def load_embeddings(filename):
 # t = tm.time()-start_time
 # print("Took", int(t/60), "minutes and", "{:.2f}".format(t - 60*int(t/60)), "seconds to load embeddings")
 
-
-
 def spymaster(inputDict):
     # split the inputted dictionary into the appropriate dictionaries, base vector being 0,0,0,0,...
     our_words = {}
     their_words = {}
     neutral_words = {}
     assassin_word = {}
+    # assign the global all words
+    board_words = inputDict.get('our words') + inputDict.get('their words') + inputDict.get('neutral words') + [inputDict.get('assassin word')]
     base_value = np.full(300,0.0)
     for word in inputDict['our words']:
         our_words[word] = base_value
@@ -174,10 +176,18 @@ def checkVector(their_words, neutral_words, assassin_word, idealVector):
 # create a dictionary where the key is the word, value is distance from ideal vector
 # find the word associated with minimum distance
 def getClue(embeddings,ideal_v):
+    loop = True
     distance_dict = { w:distance(ideal_v, v) for w,v in embeddings.items()} # add in if w not in one of the input dictionaries
-    clue = min(distance_dict, key=distance_dict.get)
+    while loop: 
+        # get clue with shortest distance
+        clue = min(distance_dict, key=distance_dict.get)
+        # check that the clue does not conflict with any words on the board
+        loop = False
+        for word in board_words: 
+            if bool(re.search(clue, word)) or bool(re.search(word, clue)):
+                distance_dict.pop(clue, None)
+                loop = True
     return clue
-
 
 filename = os.path.join(os.getcwd(), "1", "model.txt")
 load_embeddings(filename)
@@ -196,4 +206,4 @@ def improve_vector(ideal, their_vects, assassin_vect):
 
 inputDict = {'our words': ['chair', 'fruit', 'banana', 'backpack', 'apple', 'couch', 'bed'], 'their words': ['dinosaur', 'mug', 'computer'], 'neutral words': ['planet', 'france', 'bird'], 'assassin word': 'cup'}
 
-spymaster(inputDict)
+# spymaster(inputDict)
