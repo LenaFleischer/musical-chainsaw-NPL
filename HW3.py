@@ -176,3 +176,9 @@ def getClue(embeddings,ideal_v):
     distance_dict = { w:distance(ideal_v, v) for w,v in embeddings.items()} # add in if w not in one of the input dictionaries
     clue = min(distance_dict, key=distance_dict.get)
     return clue
+
+def improve_vector(ideal, their_vects, assassin_vect):
+    for their_vect in their_vects:
+        ideal = np.subtract(ideal, np.array(their_vect) * (1 / distance(ideal, their_vect)))
+    ideal = np.subtract(ideal, np.array(assassin_vect) * (8 / distance(ideal, assassin_vect)))
+    return ideal
