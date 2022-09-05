@@ -3,6 +3,7 @@ import numpy as np
 import time as tm
 import os
 import re
+import random 
 
 # make global: embeddings, all input words, hardcoded 2 words
 embeddings = {}
@@ -203,7 +204,34 @@ def improve_vector(ideal, their_vects, assassin_vect):
     ideal = np.subtract(ideal, np.array(assassin_vect) * (8 / distance(ideal, assassin_vect)))
     return ideal
 
+#randomly generates input dictionary 
+def generate_inputDict():
+    f = open(r"C:\Users\Hset Hset Naing\Documents\Natural Language Processing Block 1\musical-chainsaw-NPL\codenames_default.txt")
+    codenames = []
+    line = f.readline()
+    while line != "":
+        #print(line)
+        line = line.strip('\n')
+        codenames.append(line)
+        line = f.readline() #go to next line
+    
+    our_words = [] #7 words
+    their_words = [] #8 words
+    neutral_words = [] #9 words
+    assassin_word = [] #1 word
+    result = []
+    
+    random.shuffle(codenames) #shuffle codenames
+   
+    our_words = codenames[:7]
+    their_words = codenames[67:75]
+    neutral_words = codenames[300:309]
+    assassin_word = codenames[399]
+    
 
-inputDict = {'our words': ['chair', 'fruit', 'banana', 'backpack', 'apple', 'couch', 'bed'], 'their words': ['dinosaur', 'mug', 'computer'], 'neutral words': ['planet', 'france', 'bird'], 'assassin word': 'cup'}
+    print(our_words)
+    print(their_words)
+    print(neutral_words)
+    print(assassin_word)
 
-# spymaster(inputDict)
+    return { 'our_words':our_words, 'their_words': their_words, 'neutral_words': neutral_words, 'assassin_word': assassin_word } 
