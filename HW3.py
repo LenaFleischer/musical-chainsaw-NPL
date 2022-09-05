@@ -7,18 +7,24 @@ import os
 embeddings = {}
 
 # takes in filename, gets a dictionary of all embeddings in the file
-def load_embeddings(filename):
-    f = open(filename)
+def load_embeddings(filename, model='wiki'):
+    f = open(filename,encoding="utf-8")
     line = f.readline()
     size = (int(line.split()[0]))
     # embeddings = {}
     # global embeddings
     for i in range(size):
         line = f.readline().split()
-        word = line[0].split('_')[0].lower()
-        # if ':' in word or line[0].split('_')[1] == 'PROPN': # takes out proper nouns
-        if ':' in word or '</s>' in word:
-            continue
+        if model == 'g_news':
+            word = line[0].split('_')[0]
+            if ':' in word or '</s>' in word:
+                continue
+        elif model == 'wiki':
+            word = line[0]
+            if not word.islower() or not word.isalpha():
+                continue
+        else:
+            raise Exception('only g_news and wiki supported')
         embeddings[word] = [float(x) for x in line[1:]]
     # return embeddings
 
@@ -192,8 +198,3 @@ def improve_vector(ideal, their_vects, assassin_vect):
         ideal = np.subtract(ideal, np.array(their_vect) * (1 / distance(ideal, their_vect)))
     ideal = np.subtract(ideal, np.array(assassin_vect) * (8 / distance(ideal, assassin_vect)))
     return ideal
-
-
-inputDict = {'our words': ['chair', 'fruit', 'banana', 'backpack', 'apple', 'couch', 'bed'], 'their words': ['dinosaur', 'mug', 'computer'], 'neutral words': ['planet', 'france', 'bird'], 'assassin word': 'cup'}
-
-spymaster(inputDict)
