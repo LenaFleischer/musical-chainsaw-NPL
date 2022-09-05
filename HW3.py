@@ -16,7 +16,7 @@ def load_embeddings(filename, model='wiki'):
     size = (int(line.split()[0]))
     # embeddings = {}
     # global embeddings
-    for i in range(size):
+    for i in range(int(size/2)):
         line = f.readline().split()
         if model == 'g_news':
             word = line[0].split('_')[0]
@@ -232,7 +232,7 @@ start_time=tm.time()
 
 filename = "model.txt"
 load_embeddings(filename)
-inputDict = {'our words': ['chair', 'fruit', 'candy', 'couch', 'apple', 'france', 'cookie'], 'their words': ['dinosaur', 'mug', 'computer'], \
+inputDict = {'our words': ['chair', 'fruit', 'candy', 'couch', 'apple', 'france', 'cookie'], 'their words': ['dinosaur', 'mug', 'computer'],
              'neutral words': ['planet', 'france', 'bird'], 'assassin word': 'cup'}
 spymaster(inputDict)
 
