@@ -21,6 +21,36 @@ def load_embeddings(filename):
             continue
         embeddings[word] = [float(x) for x in line[1:]]
 
+#randomly generates input dictionary 
+def generate_inputDict():
+    f = open("codenames_default.txt")
+    codenames = []
+    line = f.readline()
+    while line != "":
+        line = line.strip('\n')
+        codenames.append(line.lower())
+        line = f.readline() #go to next line
+    our_words = [] #7 words
+    their_words = [] #8 words
+    neutral_words = [] #9 words
+    assassin_word = [] #1 word
+    random.shuffle(codenames) #shuffle codenames
+    our_words = codenames[:7]
+    their_words = codenames[8:16]
+    neutral_words = codenames[17:26]
+    assassin_word = codenames[27:28]
+    
+    # TODO: for testing, remove
+    print("Our Words:", len(our_words))
+    print(our_words)
+    print("Their Words:", len(their_words))
+    print(their_words)
+    print("Neutral Words:", len(neutral_words))
+    print(neutral_words)
+    print("Assassin Word:", len(assassin_word))
+    print(assassin_word)
+    
+    return { 'our words':our_words, 'their words': their_words, 'neutral words': neutral_words, 'assassin word': assassin_word[0] } 
 def spymaster(inputDict):
     # split the inputted dictionary into the appropriate dictionaries, base vector being 0,0,0,0,...
     # format is {"word": vector, "word 2": vector 2, ...}
@@ -62,12 +92,16 @@ def setVectors(dictOfWords):
         dictOfWords[word] = word_vector
     return dictOfWords
 
-# calculates and returns the euclidean distance between 2 vectors
+# calculates and returns the cosine distance between 2 vectors
 def distance(v1,v2):
-    inner = 0
+    numerator = 0
+    denominator1 = 0
+    denominator2 = 0
     for i in range(len(v1)):
-        inner += (v1[i]-v2[i])**2
-    return math.sqrt(inner)
+        numerator += (v1[i]*v2[i])
+        denominator1 += (v1[i]**2)
+        denominator2 += (v2[i]**2)
+    return (numerator / (math.sqrt(denominator1)*math.sqrt(denominator2)))
 
 # finds the average distance between the current words
 def getAveDistances(vectors, n):
@@ -113,7 +147,7 @@ def findTrueMax(vectors, ave_distances):
 # @returns: the ideal vector, number of words it corrolates to, and what those words are
 def findIdealVector(dictOfWords):
     listOfVectors = list(dictOfWords.items())
-    maxDistAllowed = 1.2 #TODO: no, find actual number for this
+    maxDistAllowed = 0.07
     
     if len(dictOfWords)>=4:
         num_words = 4
@@ -128,16 +162,10 @@ def findIdealVector(dictOfWords):
     
     while True:
         # if there are more then 1 word left in the dictionary
-        if num_words!=1:
+        if num_words>2:
             ave_distances = getAveDistances(vectors, num_words) 
             maxInd = findTrueMax(vectors,ave_distances)
             
-            #TODO: remove these print statements
-            print("-"*40)
-            for i in range(len(vectors)):
-                print(closest_words[i], "is", ave_distances[i])
-                
-                
             i = 0
             while i<len(dictOfWords): #for each word in the dictionary
                 if listOfVectors[i][0] not in closest_words: #if the word is not already in the list
@@ -149,7 +177,6 @@ def findIdealVector(dictOfWords):
                         i = -1
                         maxInd = findTrueMax(vectors,ave_distances)
                 i+=1
-                
             # if all the words are less than some distance apart, return
             if np.all(ave_distances<maxDistAllowed):
                 return calculateIdealVector(vectors), closest_words
@@ -160,10 +187,26 @@ def findIdealVector(dictOfWords):
                 vectors = np.delete(vectors, maxInd, 0)
                 num_words = num_words-1
         else:
+            if num_words==2:
+                return closestTwoWords(list(dictOfWords.items()))
             # if theres only 1 word left, return it
             return calculateIdealVector(listOfVectors[0][1]), [listOfVectors[0][0]]
-
-
+        
+# finds only the closest 2 words
+def closestTwoWords(listOfVectors):
+    minDist = 300
+    closest_words = [" "*30, " "*30]
+    closest_vectors = [listOfVectors[0][1], listOfVectors[1][1]]
+    for i in range(len(listOfVectors)):
+        for j in range(len(listOfVectors)):
+            if listOfVectors[i][1] != None and listOfVectors[j][1]!= None:
+                dist = distance(listOfVectors[i][1],listOfVectors[j][1])
+                if i!=j and minDist>distance(listOfVectors[i][1],listOfVectors[j][1]):
+                    minDist = dist
+                    closest_words=[listOfVectors[i][0], listOfVectors[j][0]]
+                    closest_vectors=[listOfVectors[i][1], listOfVectors[j][1]]
+    return calculateIdealVector(closest_vectors), closest_words
+    
 # averages the vectors given to get a ideal vector for the clue
 def calculateIdealVector(vectors):
     appendedVectors = [vectors[0]]
@@ -175,8 +218,8 @@ def calculateIdealVector(vectors):
 
 def improve_vector(ideal, their_vects, assassin_vect):
     for their_vect in their_vects:
-        ideal = np.subtract(ideal, np.array(their_vect) * (.05 / distance(ideal, their_vect)))
-    ideal = np.subtract(ideal, np.array(assassin_vect) * (.5 / distance(ideal, assassin_vect)))
+        ideal = np.subtract(ideal, np.array(their_vect) * (.009 / distance(ideal, their_vect)))
+    ideal = np.subtract(ideal, np.array(assassin_vect) * (.05 / distance(ideal, assassin_vect)))
     return ideal
 
 # input: ideal vector, all word embeddings, all input words
@@ -197,45 +240,12 @@ def getClue(ideal_v, board_words):
                 loop = True
     return clue
 
-#randomly generates input dictionary 
-def generate_inputDict():
-    f = open("codenames_default.txt")
-    codenames = []
-    line = f.readline()
-    while line != "":
-        #print(line)
-        line = line.strip('\n')
-        codenames.append(line.lower())
-        line = f.readline() #go to next line
-    our_words = [] #7 words
-    their_words = [] #8 words
-    neutral_words = [] #9 words
-    assassin_word = [] #1 word
-    random.shuffle(codenames) #shuffle codenames
-    our_words = codenames[:7]
-    their_words = codenames[8:16]
-    neutral_words = codenames[17:26]
-    assassin_word = codenames[27:28]
-    
-    # TODO: for testing, remove
-    print("Our Words:", len(our_words))
-    print(our_words)
-    print("Their Words:", len(their_words))
-    print(their_words)
-    print("Neutral Words:", len(neutral_words))
-    print(neutral_words)
-    print("Assassin Word:", len(assassin_word))
-    print(assassin_word)
-    
-    return { 'our words':our_words, 'their words': their_words, 'neutral words': neutral_words, 'assassin word': assassin_word[0] } 
-
 #filename = os.path.join(os.getcwd(), "1", "model.txt")
-start_time=tm.time()
 
+#start_time=tm.time()
 filename = "model.txt"
 load_embeddings(filename)
 inputDict=generate_inputDict()
 spymaster(inputDict)
-
-t = tm.time()-start_time
-print("Took", int(t/60), "minutes and", "{:.2f}".format(t - 60*int(t/60)), "seconds find clue")
+#t = tm.time()-start_time
+#print("Took", int(t/60), "minutes and", "{:.2f}".format(t - 60*int(t/60)), "seconds find clue")
