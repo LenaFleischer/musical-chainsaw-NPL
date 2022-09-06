@@ -30,11 +30,10 @@ def generate_inputDict():
         line = line.strip('\n')
         codenames.append(line.lower())
         line = f.readline() #go to next line
-    our_words = [] #7 words
-    their_words = [] #8 words
-    neutral_words = [] #9 words
-    assassin_word = [] #1 word
+        
     random.shuffle(codenames) #shuffle codenames
+    
+    #our words - 7, their words - 8, neutral words - 9, assassin word - 1
     our_words = codenames[:7]
     their_words = codenames[8:16]
     neutral_words = codenames[17:26]
