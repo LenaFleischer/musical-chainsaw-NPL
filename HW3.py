@@ -147,7 +147,7 @@ def findTrueMax(vectors, ave_distances):
 # @returns: the ideal vector, number of words it corrolates to, and what those words are
 def findIdealVector(dictOfWords):
     listOfVectors = list(dictOfWords.items())
-    maxDistAllowed = 0.07
+    maxDistAllowed = 0.065
     
     if len(dictOfWords)>=4:
         num_words = 4
