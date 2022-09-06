@@ -5,31 +5,21 @@ import os
 import re
 import random 
 
-# make global: embeddings, all input words, hardcoded 2 words
+# make global: embeddings, all input words
 embeddings = {}
 board_words = []
 
 # takes in filename, gets a dictionary of all embeddings in the file
-def load_embeddings(filename, model='wiki'):
-    f = open(filename,encoding="utf-8")
+def load_embeddings(filename):
+    f = open(filename)
     line = f.readline()
     size = (int(line.split()[0]))
-    # embeddings = {}
-    # global embeddings
     for i in range(int(size/2)):
         line = f.readline().split()
-        if model == 'g_news':
-            word = line[0].split('_')[0]
-            if ':' in word or '</s>' in word:
-                continue
-        elif model == 'wiki':
-            word = line[0]
-            if not word.islower() or not word.isalpha():
-                continue
-        else:
-            raise Exception('only g_news and wiki supported')
+        word = line[0].split('_')[0].lower()
+        if ':' in word or '</s>' in word:
+            continue
         embeddings[word] = [float(x) for x in line[1:]]
-    # return embeddings
 
 def spymaster(inputDict):
     # split the inputted dictionary into the appropriate dictionaries, base vector being 0,0,0,0,...
@@ -58,7 +48,7 @@ def spymaster(inputDict):
     # find the ideal vector, and how many words it corrolates to
     ideal, words_clued_for = findIdealVector(our_words)
     ideal = improve_vector(ideal, list(their_words.values()), list(assassin_word.values())[0]) #their_vects should only be values, for assassin we specify so we get only the vector, not list  
-    print("Clue:", getClue(ideal))
+    print("Clue:", getClue(ideal, board_words))
     print("Number:", len(words_clued_for))
     print("For:", words_clued_for)
     return
@@ -123,7 +113,7 @@ def findTrueMax(vectors, ave_distances):
 # @returns: the ideal vector, number of words it corrolates to, and what those words are
 def findIdealVector(dictOfWords):
     listOfVectors = list(dictOfWords.items())
-    maxDistAllowed = 1 #TODO: no, find actual number for this
+    maxDistAllowed = 1.2 #TODO: no, find actual number for this
     
     if len(dictOfWords)>=4:
         num_words = 4
@@ -142,6 +132,12 @@ def findIdealVector(dictOfWords):
             ave_distances = getAveDistances(vectors, num_words) 
             maxInd = findTrueMax(vectors,ave_distances)
             
+            #TODO: remove these print statements
+            print("-"*40)
+            for i in range(len(vectors)):
+                print(closest_words[i], "is", ave_distances[i])
+                
+                
             i = 0
             while i<len(dictOfWords): #for each word in the dictionary
                 if listOfVectors[i][0] not in closest_words: #if the word is not already in the list
@@ -165,7 +161,7 @@ def findIdealVector(dictOfWords):
                 num_words = num_words-1
         else:
             # if theres only 1 word left, return it
-            return calculateIdealVector(listOfVectors[0][1]), listOfVectors[0][0]
+            return calculateIdealVector(listOfVectors[0][1]), [listOfVectors[0][0]]
 
 
 # averages the vectors given to get a ideal vector for the clue
@@ -179,15 +175,15 @@ def calculateIdealVector(vectors):
 
 def improve_vector(ideal, their_vects, assassin_vect):
     for their_vect in their_vects:
-        ideal = np.subtract(ideal, np.array(their_vect) * (1 / distance(ideal, their_vect)))
-    ideal = np.subtract(ideal, np.array(assassin_vect) * (8 / distance(ideal, assassin_vect)))
+        ideal = np.subtract(ideal, np.array(their_vect) * (.05 / distance(ideal, their_vect)))
+    ideal = np.subtract(ideal, np.array(assassin_vect) * (.5 / distance(ideal, assassin_vect)))
     return ideal
 
 # input: ideal vector, all word embeddings, all input words
 # output: clue word 
 # create a dictionary where the key is the word, value is distance from ideal vector
 # find the word associated with minimum distance
-def getClue(ideal_v):
+def getClue(ideal_v, board_words):
     loop = True
     distance_dict = { w:distance(ideal_v, v) for w,v in embeddings.items()} # add in if w not in one of the input dictionaries
     while loop: 
@@ -203,13 +199,13 @@ def getClue(ideal_v):
 
 #randomly generates input dictionary 
 def generate_inputDict():
-    f = open(r"C:\Users\Hset Hset Naing\Documents\Natural Language Processing Block 1\musical-chainsaw-NPL\codenames_default.txt")
+    f = open("codenames_default.txt")
     codenames = []
     line = f.readline()
     while line != "":
         #print(line)
         line = line.strip('\n')
-        codenames.append(line)
+        codenames.append(line.lower())
         line = f.readline() #go to next line
     our_words = [] #7 words
     their_words = [] #8 words
@@ -217,23 +213,28 @@ def generate_inputDict():
     assassin_word = [] #1 word
     random.shuffle(codenames) #shuffle codenames
     our_words = codenames[:7]
-    their_words = codenames[67:75]
-    neutral_words = codenames[300:309]
-    assassin_word = codenames[399]
-    #please don't remove, need for testing just in case
-    #print(our_words)
-    #print(their_words)
-    #print(neutral_words)
-    #print(assassin_word)
-    return { 'our_words':our_words, 'their_words': their_words, 'neutral_words': neutral_words, 'assassin_word': assassin_word } 
+    their_words = codenames[8:16]
+    neutral_words = codenames[17:26]
+    assassin_word = codenames[27:28]
+    
+    # TODO: for testing, remove
+    print("Our Words:", len(our_words))
+    print(our_words)
+    print("Their Words:", len(their_words))
+    print(their_words)
+    print("Neutral Words:", len(neutral_words))
+    print(neutral_words)
+    print("Assassin Word:", len(assassin_word))
+    print(assassin_word)
+    
+    return { 'our words':our_words, 'their words': their_words, 'neutral words': neutral_words, 'assassin word': assassin_word[0] } 
 
 #filename = os.path.join(os.getcwd(), "1", "model.txt")
 start_time=tm.time()
 
 filename = "model.txt"
 load_embeddings(filename)
-inputDict = {'our words': ['chair', 'fruit', 'candy', 'couch', 'apple', 'france', 'cookie'], 'their words': ['dinosaur', 'mug', 'computer'],
-             'neutral words': ['planet', 'france', 'bird'], 'assassin word': 'cup'}
+inputDict=generate_inputDict()
 spymaster(inputDict)
 
 t = tm.time()-start_time
